@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeetMetric ⚡ Gen-Z LeetCode Stats & Aura Tracker</title>
-    <meta name="description" content="Track your LeetCode problem-solving stats, profile avatar, contest rating, aura rank, acceptance rate, and progress with high-octane Gen-Z cyber aesthetics.">
+    <title>LeetMetric ⚡ Multi-Platform Coding Stats & Aura Tracker</title>
+    <meta name="description" content="Track your competitive coding stats across LeetCode, Codeforces, and CodeChef with real avatars, ratings, animated progress meters, and Gen-Z cyber aesthetics.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,18 +24,58 @@
         <header class="header">
             <div class="badge-tag">
                 <span class="pulse-dot"></span>
-                <span>VIBE CHECK YOUR GRIND</span>
+                <span>MULTI-PLATFORM VIBE CHECK</span>
             </div>
             <h1 class="brand-title">
                 Leet<span class="gradient-text">Metric</span> <span class="title-emoji">⚡</span>
             </h1>
             <p class="brand-subtitle">
-                Track your code aura, solve stats & flex your DSA journey in real-time.
+                Compare stats, inspect live ratings & flex your coding aura across the multiverse.
             </p>
         </header>
 
-        <!-- Search Card -->
-        <section class="search-card glass-panel" aria-label="LeetCode Username Search">
+        <!-- Search Card with Platform Selector Dropdown -->
+        <section class="search-card glass-panel" aria-label="Competitive Programming Handle Search">
+            <!-- Platform Selector Header -->
+            <div class="platform-bar">
+                <span class="platform-label">SELECT PLATFORM:</span>
+                <div class="custom-dropdown" id="platform-dropdown">
+                    <button type="button" class="dropdown-trigger" id="dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="platform-icon" id="current-platform-icon">⚡</span>
+                        <span class="platform-name" id="current-platform-name">LeetCode</span>
+                        <svg class="chevron-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <ul class="dropdown-menu" id="dropdown-menu" role="listbox">
+                        <li class="dropdown-item active" data-platform="leetcode" role="option">
+                            <span class="item-icon">⚡</span>
+                            <div class="item-info">
+                                <span class="item-title">LeetCode</span>
+                                <span class="item-sub">DSA & Contest Rating</span>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </li>
+                        <li class="dropdown-item" data-platform="codeforces" role="option">
+                            <span class="item-icon">🔺</span>
+                            <div class="item-info">
+                                <span class="item-title">Codeforces</span>
+                                <span class="item-sub">Global CP & Grandmaster Tiers</span>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </li>
+                        <li class="dropdown-item" data-platform="codechef" role="option">
+                            <span class="item-icon">👨‍🍳</span>
+                            <div class="item-info">
+                                <span class="item-title">CodeChef</span>
+                                <span class="item-sub">Star Ratings & Contests</span>
+                            </div>
+                            <span class="check-mark">✓</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
             <form id="search-form" class="search-form" onsubmit="return false;">
                 <div class="input-wrapper">
                     <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -48,7 +88,7 @@
                         placeholder="Enter LeetCode handle (e.g. neal_wu, tourist)..." 
                         autocomplete="off" 
                         spellcheck="false"
-                        maxlength="35"
+                        maxlength="40"
                         required
                     >
                     <button type="button" id="clear-input-btn" class="clear-btn" title="Clear input" aria-label="Clear input" style="display: none;">
@@ -69,10 +109,7 @@
                 <div class="tag-group">
                     <span class="tag-label">🔥 Hot Picks:</span>
                     <div class="tags-list" id="preset-tags">
-                        <button class="tag-chip" data-username="tourist">tourist</button>
-                        <button class="tag-chip" data-username="neal_wu">neal_wu</button>
-                        <button class="tag-chip" data-username="lee215">lee215</button>
-                        <button class="tag-chip" data-username="Yash8092">Yash8092</button>
+                        <!-- Populated dynamically based on platform -->
                     </div>
                 </div>
                 <div class="tag-group" id="recent-group" style="display: none;">
@@ -86,14 +123,14 @@
         <div id="content-container">
             <!-- Welcome / Empty State placeholder -->
             <div id="welcome-state" class="welcome-card glass-panel">
-                <div class="welcome-icon-box">👾</div>
-                <h2>Ready for the Vibe Check?</h2>
-                <p>Type in any valid LeetCode username above or tap one of the hot picks to pull live metrics, real avatar, contest rating, rank, and dynamic aura!</p>
-                <div class="feature-pills">
-                    <span class="pill">🖼️ Real Profile Avatar</span>
-                    <span class="pill">🏆 Contest Rating & Badges</span>
-                    <span class="pill">🎨 Gen-Z Aura Badges</span>
-                    <span class="pill">📊 Animated SVG Rings</span>
+                <div class="welcome-icon-box" id="welcome-icon">👾</div>
+                <h2 id="welcome-title">Ready for the Vibe Check?</h2>
+                <p id="welcome-desc">Choose a platform from the dropdown above, enter any username, or tap one of the hot picks to pull live metrics, real avatars, and dynamic aura!</p>
+                <div class="feature-pills" id="welcome-pills">
+                    <span class="pill">⚡ Multi-Platform Sync</span>
+                    <span class="pill">🖼️ Real Profile Avatars</span>
+                    <span class="pill">🏆 Contest Ratings & Ranks</span>
+                    <span class="pill">🎨 Dynamic Aura Badges</span>
                     <span class="pill">🚀 One-Click Share</span>
                 </div>
             </div>
@@ -124,7 +161,7 @@
             <div id="error-state" class="glass-panel error-card" style="display: none;">
                 <div class="error-emoji">💀</div>
                 <h3 id="error-title">User Not Found</h3>
-                <p id="error-message">We couldn't locate this handle on LeetCode. Double check the spelling or try another user.</p>
+                <p id="error-message">We couldn't locate this handle. Double check the spelling or try another user.</p>
                 <button type="button" id="error-retry-btn" class="btn-secondary">Try Again</button>
             </div>
 
@@ -141,19 +178,19 @@
                             <div class="username-row">
                                 <h2 id="display-username">Username</h2>
                                 <span id="aura-badge" class="aura-badge">⚡ DSA Rookie</span>
-                                <span id="contest-badge" class="contest-badge" style="display: none;"></span>
+                                <span id="platform-badge" class="contest-badge" style="display: none;"></span>
                             </div>
                             <div class="user-details-row">
                                 <span id="display-realname" class="user-realname"></span>
                                 <span id="display-country" class="meta-pill" style="display: none;"></span>
                                 <span id="display-affiliation" class="meta-pill" style="display: none;"></span>
                             </div>
-                            <p class="user-subtext" id="user-subtext">LeetCode Competitor</p>
+                            <p class="user-subtext" id="user-subtext">Competitive Programmer</p>
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <a id="leetcode-link" href="#" target="_blank" rel="noopener noreferrer" class="action-btn link-btn" title="View on LeetCode">
-                            <span>LeetCode</span>
+                        <a id="platform-link" href="#" target="_blank" rel="noopener noreferrer" class="action-btn link-btn" title="View Profile">
+                            <span id="platform-link-text">Profile</span>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                                 <polyline points="15 3 21 3 21 9"></polyline>
@@ -176,31 +213,31 @@
                 <!-- Contest Stats Banner (Shown when contest data is available) -->
                 <div id="contest-banner" class="contest-banner" style="display: none;">
                     <div class="contest-stat-item">
-                        <span class="contest-label">CONTEST RATING</span>
+                        <span class="contest-label" id="contest-label-1">RATING</span>
                         <span class="contest-value highlight-rating" id="contest-rating">0</span>
                     </div>
                     <div class="contest-stat-item">
-                        <span class="contest-label">GLOBAL RANK</span>
+                        <span class="contest-label" id="contest-label-2">GLOBAL RANK</span>
                         <span class="contest-value" id="contest-global-rank">#0</span>
                     </div>
                     <div class="contest-stat-item">
-                        <span class="contest-label">TOP PERCENTILE</span>
-                        <span class="contest-value" id="contest-top-percent">0%</span>
+                        <span class="contest-label" id="contest-label-3">PEAK RATING</span>
+                        <span class="contest-value" id="contest-top-percent">0</span>
                     </div>
                     <div class="contest-stat-item">
-                        <span class="contest-label">CONTESTS</span>
+                        <span class="contest-label" id="contest-label-4">CONTESTS</span>
                         <span class="contest-value" id="contest-attended">0</span>
                     </div>
                 </div>
 
-                <!-- Total Solved Progress Banner -->
-                <div class="overall-progress-card">
+                <!-- LeetCode Specific Progress Banner -->
+                <div class="overall-progress-card" id="overall-progress-card">
                     <div class="overall-header">
                         <div class="overall-title-wrap">
-                            <span class="section-label">TOTAL SOLVED</span>
+                            <span class="section-label" id="progress-card-title">TOTAL SOLVED</span>
                             <div class="overall-numbers">
                                 <span class="counter-highlight" id="total-solved-count">0</span>
-                                <span class="total-denom">/ <span id="total-questions-count">0</span></span>
+                                <span class="total-denom" id="total-denom-wrap">/ <span id="total-questions-count">0</span></span>
                             </div>
                         </div>
                         <div class="overall-percentage" id="overall-percentage">0%</div>
@@ -210,8 +247,8 @@
                     </div>
                 </div>
 
-                <!-- Difficulty Rings Section -->
-                <div class="rings-grid">
+                <!-- Difficulty Rings Section (For LeetCode & multi-level solve platforms) -->
+                <div class="rings-grid" id="rings-grid">
                     <!-- Easy Ring -->
                     <div class="ring-card easy-card">
                         <div class="ring-wrapper">
@@ -269,14 +306,14 @@
 
                 <!-- Secondary Metrics Grid -->
                 <div class="stats-grid" id="stats-grid">
-                    <!-- Cards will be populated dynamically -->
+                    <!-- Populated dynamically per platform -->
                 </div>
             </section>
         </div>
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>Crafted with ⚡ for DSA Grinders • Powered by LeetCode Open APIs</p>
+            <p>Crafted with ⚡ for Multi-Platform DSA Grinders • Powered by Official & Open CP APIs</p>
         </footer>
     </main>
 

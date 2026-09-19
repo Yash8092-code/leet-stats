@@ -1,11 +1,49 @@
 /**
- * LeetMetric ⚡ Gen-Z LeetCode Stats & Aura Tracker
- * Enriched with Real Profile Avatar, Contest Analytics,
- * Social links, and Animated SVG Visualizations.
+ * LeetMetric ⚡ Multi-Platform Competitive Programming Stats Hub
+ * Supporting LeetCode, Codeforces & CodeChef with live ratings,
+ * real profile avatars, contest analytics, and dynamic cyber styling.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // DOM Elements - Search Form
+    // Platforms Definition
+    const PLATFORMS = {
+        leetcode: {
+            id: "leetcode",
+            name: "LeetCode",
+            icon: "⚡",
+            placeholder: "Enter LeetCode handle (e.g. neal_wu, tourist)...",
+            presets: ["tourist", "neal_wu", "lee215", "Yash8092"],
+            welcomeDesc: "Inspect LeetCode problem solve counts, difficulty breakdown, real avatar, and live contest rating!"
+        },
+        codeforces: {
+            id: "codeforces",
+            name: "Codeforces",
+            icon: "🔺",
+            placeholder: "Enter Codeforces handle (e.g. tourist, Benq, Petr)...",
+            presets: ["tourist", "Benq", "Petr", "ecnerwala"],
+            welcomeDesc: "Track official Codeforces rating, max rating, Grandmaster rank tiers, organization, and contribution points!"
+        },
+        codechef: {
+            id: "codechef",
+            name: "CodeChef",
+            icon: "👨‍🍳",
+            placeholder: "Enter CodeChef handle (e.g. tourist, gennady.korotkevich)...",
+            presets: ["tourist", "gennady.korotkevich", "chandan_007"],
+            welcomeDesc: "Inspect CodeChef star rating (1★ - 7★), contest rating, peak ranking, institution, and country standing!"
+        }
+    };
+
+    let currentPlatform = "leetcode";
+    let currentData = null;
+
+    // DOM Elements - Dropdown & Header
+    const platformDropdown = document.getElementById("platform-dropdown");
+    const dropdownTrigger = document.getElementById("dropdown-trigger");
+    const dropdownMenu = document.getElementById("dropdown-menu");
+    const currentPlatformIcon = document.getElementById("current-platform-icon");
+    const currentPlatformName = document.getElementById("current-platform-name");
+
+    // Search Form Elements
     const searchForm = document.getElementById("search-form");
     const searchButton = document.getElementById("search-btn");
     const btnText = searchButton.querySelector(".btn-text");
@@ -16,6 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // UI View States
     const welcomeState = document.getElementById("welcome-state");
+    const welcomeTitle = document.getElementById("welcome-title");
+    const welcomeDesc = document.getElementById("welcome-desc");
     const loadingState = document.getElementById("loading-state");
     const errorState = document.getElementById("error-state");
     const statsDisplay = document.getElementById("stats-display");
@@ -31,25 +71,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const displayCountry = document.getElementById("display-country");
     const displayAffiliation = document.getElementById("display-affiliation");
     const auraBadge = document.getElementById("aura-badge");
-    const contestBadge = document.getElementById("contest-badge");
+    const platformBadge = document.getElementById("platform-badge");
     const userSubtext = document.getElementById("user-subtext");
-    const leetcodeLink = document.getElementById("leetcode-link");
+    const platformLink = document.getElementById("platform-link");
+    const platformLinkText = document.getElementById("platform-link-text");
     const copyStatsBtn = document.getElementById("copy-stats-btn");
     const copyBtnText = document.getElementById("copy-btn-text");
     const socialsBar = document.getElementById("socials-bar");
 
-    // Contest Stats Banner Elements
+    // Contest Banner Elements
     const contestBanner = document.getElementById("contest-banner");
+    const contestLabel1 = document.getElementById("contest-label-1");
+    const contestLabel2 = document.getElementById("contest-label-2");
+    const contestLabel3 = document.getElementById("contest-label-3");
+    const contestLabel4 = document.getElementById("contest-label-4");
     const contestRatingEl = document.getElementById("contest-rating");
     const contestGlobalRankEl = document.getElementById("contest-global-rank");
     const contestTopPercentEl = document.getElementById("contest-top-percent");
     const contestAttendedEl = document.getElementById("contest-attended");
 
-    // Total Solved Progress Elements
+    // Progress Banner & Rings
+    const overallProgressCard = document.getElementById("overall-progress-card");
+    const progressCardTitle = document.getElementById("progress-card-title");
     const totalSolvedCount = document.getElementById("total-solved-count");
     const totalQuestionsCount = document.getElementById("total-questions-count");
+    const totalDenomWrap = document.getElementById("total-denom-wrap");
     const overallPercentage = document.getElementById("overall-percentage");
     const overallProgressBar = document.getElementById("overall-progress-bar");
+    const ringsGrid = document.getElementById("rings-grid");
 
     // Difficulty Rings
     const easyCircle = document.getElementById("easy-circle");
@@ -73,11 +122,82 @@ document.addEventListener("DOMContentLoaded", () => {
     const recentGroup = document.getElementById("recent-group");
     const toastContainer = document.getElementById("toast-container");
 
-    const CIRCUMFERENCE = 2 * Math.PI * 50; // Radius 50 = ~314.159
-    let currentAggregatedData = null;
+    const CIRCUMFERENCE = 2 * Math.PI * 50;
 
-    // Initialize Recent Searches from localStorage
-    renderRecentSearches();
+    // Initialize UI for current platform
+    setupPlatformUI(currentPlatform);
+
+    // Dropdown Toggle Handlers
+    dropdownTrigger.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = dropdownMenu.classList.contains("show");
+        toggleDropdown(!isOpen);
+    });
+
+    document.addEventListener("click", () => {
+        toggleDropdown(false);
+    });
+
+    dropdownMenu.addEventListener("click", (e) => {
+        const item = e.target.closest(".dropdown-item");
+        if (!item || !item.dataset.platform) return;
+
+        const newPlatform = item.dataset.platform;
+        if (newPlatform !== currentPlatform) {
+            currentPlatform = newPlatform;
+            setupPlatformUI(currentPlatform);
+            showToast(`Switched platform to ${PLATFORMS[currentPlatform].name} 🚀`, "success");
+        }
+        toggleDropdown(false);
+    });
+
+    function toggleDropdown(show) {
+        if (show) {
+            dropdownMenu.classList.add("show");
+            dropdownTrigger.setAttribute("aria-expanded", "true");
+        } else {
+            dropdownMenu.classList.remove("show");
+            dropdownTrigger.setAttribute("aria-expanded", "false");
+        }
+    }
+
+    function setupPlatformUI(platformKey) {
+        const platform = PLATFORMS[platformKey];
+
+        // Update Dropdown Display
+        currentPlatformIcon.textContent = platform.icon;
+        currentPlatformName.textContent = platform.name;
+
+        // Update active class in menu
+        dropdownMenu.querySelectorAll(".dropdown-item").forEach(item => {
+            item.classList.toggle("active", item.dataset.platform === platformKey);
+        });
+
+        // Update Search Input Placeholder & Clear
+        usernameInput.placeholder = platform.placeholder;
+        usernameInput.value = "";
+        clearInputBtn.style.display = "none";
+
+        // Update Hot Picks Chips
+        renderPresetTags(platform.presets);
+
+        // Update Recent Searches
+        renderRecentSearches();
+
+        // Reset to Welcome Screen
+        welcomeTitle.textContent = `${platform.name} Vibe Check`;
+        welcomeDesc.textContent = platform.welcomeDesc;
+        welcomeState.style.display = "flex";
+        loadingState.style.display = "none";
+        errorState.style.display = "none";
+        statsDisplay.style.display = "none";
+    }
+
+    function renderPresetTags(presets) {
+        presetTags.innerHTML = presets.map(u => `
+            <button class="tag-chip" data-username="${u}">${u}</button>
+        `).join("");
+    }
 
     // Input Events
     usernameInput.addEventListener("input", () => {
@@ -99,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
         handleSearch();
     });
 
-    // Preset / Hot Pick Chips
     presetTags.addEventListener("click", (e) => {
         const chip = e.target.closest(".tag-chip");
         if (chip && chip.dataset.username) {
@@ -109,7 +228,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Recent Tags Chips
     recentTags.addEventListener("click", (e) => {
         const chip = e.target.closest(".tag-chip");
         if (chip && chip.dataset.username) {
@@ -119,32 +237,26 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Share / Copy Stats Event
     copyStatsBtn.addEventListener("click", () => {
-        if (!currentAggregatedData) return;
-        shareStats(currentAggregatedData);
+        if (!currentData) return;
+        shareStats(currentData);
     });
 
     function handleSearch() {
         const username = usernameInput.value.trim();
-        if (!validateUsername(username)) return;
-        fetchComprehensiveUserData(username);
-    }
-
-    function validateUsername(username) {
         if (!username) {
-            showToast("Please enter a LeetCode username", "error");
+            showToast("Please enter a username or handle", "error");
             usernameInput.focus();
-            return false;
+            return;
         }
 
-        const regex = /^[a-zA-Z0-9_\-\.]{1,30}$/;
-        if (!regex.test(username)) {
-            showToast("Invalid handle. Use 1-30 letters, numbers, or _ - .", "error");
-            return false;
+        if (currentPlatform === "leetcode") {
+            fetchLeetCode(username);
+        } else if (currentPlatform === "codeforces") {
+            fetchCodeforces(username);
+        } else if (currentPlatform === "codechef") {
+            fetchCodeChef(username);
         }
-
-        return true;
     }
 
     function setLoading(isLoading) {
@@ -166,11 +278,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    /**
-     * Concurrently fetch basic stats, profile details (avatar, name, country),
-     * and contest performance using Promise.allSettled.
-     */
-    async function fetchComprehensiveUserData(username) {
+    function showErrorState(title, message) {
+        errorTitle.textContent = title;
+        errorMessage.textContent = message;
+        welcomeState.style.display = "none";
+        loadingState.style.display = "none";
+        statsDisplay.style.display = "none";
+        errorState.style.display = "flex";
+    }
+
+    // ==========================================
+    // 1. LEETCODE API & RENDERER
+    // ==========================================
+    async function fetchLeetCode(username) {
         setLoading(true);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
@@ -189,302 +309,156 @@ document.addEventListener("DOMContentLoaded", () => {
 
             clearTimeout(timeoutId);
 
-            // Verify core stats
             if (coreRes.status !== "fulfilled" || !coreRes.value) {
-                throw new Error("Unable to fetch core stats");
+                throw new Error("Unable to fetch core LeetCode stats");
             }
 
             const coreData = coreRes.value;
-
-            // Handle API non-existent user response
             if (coreData.status === "error" || coreData.message === "user does not exist") {
-                showErrorState("User Not Found 💀", `We couldn't find "@${username}" on LeetCode. Double check the spelling or try another user.`);
+                showErrorState("LeetCode User Not Found 💀", `Could not locate "@${username}" on LeetCode.`);
                 return;
             }
 
-            // Extract optional profile & contest data if available
             const profileData = profileRes.status === "fulfilled" && profileRes.value && !profileRes.value.errors ? profileRes.value : null;
             const contestData = contestRes.status === "fulfilled" && contestRes.value && !contestRes.value.errors ? contestRes.value : null;
 
-            const aggregated = {
+            currentData = {
+                platform: "leetcode",
+                username: username,
                 core: coreData,
                 profile: profileData,
-                contest: contestData,
-                username: username
+                contest: contestData
             };
 
-            currentAggregatedData = aggregated;
             saveRecentSearch(username);
             renderRecentSearches();
-            renderDashboard(aggregated);
-            showToast(`Loaded live vibe for @${username}! 🚀`, "success");
+            renderLeetCodeDashboard(currentData);
+            showToast(`Loaded @${username} on LeetCode! 🚀`, "success");
 
         } catch (error) {
-            console.error("Fetch error:", error);
-            if (error.name === "AbortError") {
-                showErrorState("Request Timeout ⏱️", "The LeetCode API took too long to respond. Please try again in a few seconds.");
-            } else {
-                showErrorState("Unable to Fetch Stats ⚡", "Could not reach the LeetCode stats service. Check your internet connection.");
-            }
+            console.error(error);
+            showErrorState("Unable to Fetch LeetCode Stats ⚡", "Check handle spelling or try again in a moment.");
         } finally {
             setLoading(false);
         }
     }
 
-    function showErrorState(title, message) {
-        errorTitle.textContent = title;
-        errorMessage.textContent = message;
-        welcomeState.style.display = "none";
-        loadingState.style.display = "none";
-        statsDisplay.style.display = "none";
-        errorState.style.display = "flex";
-    }
-
-    /**
-     * Compute Dynamic Gen-Z Aura Rank based on problem count, contest rating & rank
-     */
-    function calculateAura(coreData, contestData) {
-        const solved = Number(coreData.totalSolved) || 0;
-        const ranking = Number(coreData.ranking) || 0;
-        const contestRating = contestData ? Math.round(Number(contestData.contestRating) || 0) : 0;
-        const contestBadgeName = contestData && contestData.contestBadges ? contestData.contestBadges.name : null;
-
-        // Base score calculation
-        let auraPoints = solved * 12 + (coreData.hardSolved || 0) * 35;
-        if (contestRating > 1500) {
-            auraPoints += (contestRating - 1500) * 8;
-        }
-
-        if (contestBadgeName === "Guardian" || (contestRating >= 2200)) {
-            return { title: "👑 LeetCode Guardian God", color: "#f59e0b", points: auraPoints };
-        }
-        if (contestBadgeName === "Knight" || (contestRating >= 1850)) {
-            return { title: "⚔️ LeetCode Knight", color: "#8b5cf6", points: auraPoints };
-        }
-        if (ranking > 0 && ranking <= 5000) {
-            return { title: "🔥 Algorithm Demon", color: "#ef4444", points: auraPoints };
-        }
-        if (solved >= 800) {
-            return { title: "⚡ Grandmaster", color: "#ec4899", points: auraPoints };
-        }
-        if (solved >= 400) {
-            return { title: "🚀 Code Samurai", color: "#3b82f6", points: auraPoints };
-        }
-        if (solved >= 150) {
-            return { title: "⚡ Daily Grinder", color: "#06b6d4", points: auraPoints };
-        }
-        if (solved >= 40) {
-            return { title: "🌱 Rising Coder", color: "#10b981", points: auraPoints };
-        }
-        return { title: "🐣 DSA Rookie", color: "#94a3b8", points: auraPoints };
-    }
-
-    function animateValue(element, start, end, duration = 1000, suffix = "") {
-        if (isNaN(end)) {
-            element.textContent = end + suffix;
-            return;
-        }
-
-        const range = end - start;
-        const startTime = performance.now();
-
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            const current = Math.floor(start + range * easeOut);
-
-            element.textContent = current.toLocaleString() + suffix;
-
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                element.textContent = end.toLocaleString() + suffix;
-            }
-        }
-
-        requestAnimationFrame(update);
-    }
-
-    function updateProgressRing(circle, solvedCount, totalCount, solvedEl, totalEl, percentEl) {
-        const solved = Number(solvedCount) || 0;
-        const total = Number(totalCount) || 0;
-        const percentage = total > 0 ? (solved / total) * 100 : 0;
-        const offset = CIRCUMFERENCE - (percentage / 100) * CIRCUMFERENCE;
-
-        circle.style.strokeDashoffset = CIRCUMFERENCE;
-        setTimeout(() => {
-            circle.style.strokeDashoffset = offset;
-        }, 80);
-
-        animateValue(solvedEl, 0, solved);
-        totalEl.textContent = total.toLocaleString();
-        percentEl.textContent = `${percentage.toFixed(1)}%`;
-    }
-
-    /**
-     * Render the active stats dashboard with avatar, contest metrics & problem breakdown
-     */
-    function renderDashboard(aggregated) {
-        const { core, profile, contest, username } = aggregated;
-
+    function renderLeetCodeDashboard(data) {
+        const { core, profile, contest, username } = data;
         welcomeState.style.display = "none";
         errorState.style.display = "none";
         statsDisplay.style.display = "flex";
 
-        const userHandle = core.username || username;
-        displayUsername.textContent = userHandle;
-        leetcodeLink.href = `https://leetcode.com/u/${encodeURIComponent(userHandle)}/`;
+        // Show Rings and LeetCode elements
+        ringsGrid.style.display = "grid";
+        totalDenomWrap.style.display = "inline";
+        progressCardTitle.textContent = "TOTAL SOLVED";
+        platformLinkText.textContent = "LeetCode";
+        platformLink.href = `https://leetcode.com/u/${encodeURIComponent(username)}/`;
 
-        // 1. Profile Avatar
-        avatarInitial.textContent = userHandle.charAt(0).toUpperCase();
+        // Profile Avatar & Names
+        displayUsername.textContent = core.username || username;
+        avatarInitial.textContent = username.charAt(0).toUpperCase();
         if (profile && profile.avatar && !profile.avatar.includes("default_avatar.jpg")) {
             avatarImg.src = profile.avatar;
             avatarImg.style.display = "block";
             avatarInitial.style.display = "none";
-            avatarImg.onerror = () => {
-                avatarImg.style.display = "none";
-                avatarInitial.style.display = "block";
-            };
+            avatarImg.onerror = () => { avatarImg.style.display = "none"; avatarInitial.style.display = "block"; };
         } else {
             avatarImg.style.display = "none";
             avatarInitial.style.display = "block";
         }
 
-        // 2. Real Name, Country & Organization
-        if (profile && profile.name && profile.name.trim() !== "" && profile.name.toLowerCase() !== userHandle.toLowerCase()) {
+        if (profile && profile.name && profile.name.trim() !== "") {
             displayRealname.textContent = profile.name;
             displayRealname.style.display = "inline-block";
         } else {
             displayRealname.style.display = "none";
         }
 
-        if (profile && profile.country) {
-            displayCountry.textContent = `📍 ${profile.country}`;
-            displayCountry.style.display = "inline-block";
-        } else {
-            displayCountry.style.display = "none";
-        }
+        displayCountry.textContent = profile && profile.country ? `📍 ${profile.country}` : "";
+        displayCountry.style.display = profile && profile.country ? "inline-block" : "none";
 
         const org = profile ? (profile.company || profile.school) : null;
-        if (org) {
-            displayAffiliation.textContent = `🏛️ ${org}`;
-            displayAffiliation.style.display = "inline-block";
+        displayAffiliation.textContent = org ? `🏛️ ${org}` : "";
+        displayAffiliation.style.display = org ? "inline-block" : "none";
+
+        // Aura Badge
+        const solved = Number(core.totalSolved) || 0;
+        const ranking = Number(core.ranking) || 0;
+        const contestRating = contest ? Math.round(Number(contest.contestRating) || 0) : 0;
+        const badgeName = contest && contest.contestBadges ? contest.contestBadges.name : null;
+
+        if (badgeName === "Guardian" || contestRating >= 2200) {
+            auraBadge.textContent = "👑 LeetCode Guardian God";
+            auraBadge.style.borderColor = "#f59e0b";
+        } else if (badgeName === "Knight" || contestRating >= 1850) {
+            auraBadge.textContent = "⚔️ LeetCode Knight";
+            auraBadge.style.borderColor = "#8b5cf6";
+        } else if (ranking > 0 && ranking <= 5000) {
+            auraBadge.textContent = "🔥 Algorithm Demon";
+            auraBadge.style.borderColor = "#ef4444";
+        } else if (solved >= 500) {
+            auraBadge.textContent = "⚡ Grandmaster";
+            auraBadge.style.borderColor = "#ec4899";
+        } else if (solved >= 200) {
+            auraBadge.textContent = "🚀 Code Samurai";
+            auraBadge.style.borderColor = "#3b82f6";
+        } else if (solved >= 50) {
+            auraBadge.textContent = "🌱 Rising Coder";
+            auraBadge.style.borderColor = "#10b981";
         } else {
-            displayAffiliation.style.display = "none";
+            auraBadge.textContent = "🐣 DSA Rookie";
+            auraBadge.style.borderColor = "#94a3b8";
         }
 
-        // 3. Aura & Contest Badges
-        const aura = calculateAura(core, contest);
-        auraBadge.textContent = aura.title;
-        auraBadge.style.borderColor = aura.color;
-
-        if (contest && contest.contestBadges && contest.contestBadges.name) {
-            const badgeName = contest.contestBadges.name;
-            contestBadge.textContent = `🛡️ ${badgeName}`;
-            contestBadge.className = `contest-badge badge-${badgeName.toLowerCase()}`;
-            contestBadge.style.display = "inline-flex";
+        if (badgeName) {
+            platformBadge.textContent = `🛡️ ${badgeName}`;
+            platformBadge.className = `contest-badge badge-${badgeName.toLowerCase()}`;
+            platformBadge.style.display = "inline-flex";
         } else {
-            contestBadge.style.display = "none";
+            platformBadge.style.display = "none";
         }
 
-        const rank = Number(core.ranking) || 0;
-        userSubtext.textContent = rank > 0 
-            ? `Global Rank: #${rank.toLocaleString()} • Aura: ${aura.points.toLocaleString()} pts`
-            : `LeetCode Explorer • Aura: ${aura.points.toLocaleString()} pts`;
-
-        // 4. Social Links
+        userSubtext.textContent = ranking > 0 ? `Global Rank: #${ranking.toLocaleString()}` : "LeetCode Explorer";
         renderSocials(profile);
 
-        // 5. Contest Analytics Banner
-        if (contest && contest.contestAttend && contest.contestAttend > 0) {
+        // Contest Banner
+        if (contest && contest.contestAttend > 0) {
             contestBanner.style.display = "grid";
+            contestLabel1.textContent = "CONTEST RATING";
+            contestLabel2.textContent = "GLOBAL RANK";
+            contestLabel3.textContent = "PERCENTILE";
+            contestLabel4.textContent = "CONTESTS";
+
             animateValue(contestRatingEl, 0, Math.round(contest.contestRating));
             contestGlobalRankEl.textContent = `#${(contest.contestGlobalRanking || 0).toLocaleString()}`;
-            contestTopPercentEl.textContent = `Top ${(contest.contestTopPercentage || 0)}%`;
+            contestTopPercentEl.textContent = `Top ${contest.contestTopPercentage}%`;
             contestAttendedEl.textContent = `${contest.contestAttend} Attended`;
         } else {
             contestBanner.style.display = "none";
         }
 
-        // 6. Overall Solved Progress Banner
-        const totalSolved = Number(core.totalSolved) || 0;
+        // Overall Solved Bar
         const totalQuestions = Number(core.totalQuestions) || 0;
-        const overallPercentValue = totalQuestions > 0 ? ((totalSolved / totalQuestions) * 100).toFixed(1) : "0.0";
-        animateValue(totalSolvedCount, 0, totalSolved);
+        const overallPercentValue = totalQuestions > 0 ? ((solved / totalQuestions) * 100).toFixed(1) : "0.0";
+        animateValue(totalSolvedCount, 0, solved);
         totalQuestionsCount.textContent = totalQuestions.toLocaleString();
         overallPercentage.textContent = `${overallPercentValue}%`;
         overallProgressBar.style.width = `${Math.min(overallPercentValue, 100)}%`;
 
-        // 7. Difficulty Rings
-        updateProgressRing(
-            easyCircle,
-            core.easySolved || 0,
-            core.totalEasy || 0,
-            easySolved,
-            easyTotal,
-            easyPercent
-        );
+        // Update Rings
+        updateProgressRing(easyCircle, core.easySolved || 0, core.totalEasy || 0, easySolved, easyTotal, easyPercent);
+        updateProgressRing(mediumCircle, core.mediumSolved || 0, core.totalMedium || 0, mediumSolved, mediumTotal, mediumPercent);
+        updateProgressRing(hardCircle, core.hardSolved || 0, core.totalHard || 0, hardSolved, hardTotal, hardPercent);
 
-        updateProgressRing(
-            mediumCircle,
-            core.mediumSolved || 0,
-            core.totalMedium || 0,
-            mediumSolved,
-            mediumTotal,
-            mediumPercent
-        );
-
-        updateProgressRing(
-            hardCircle,
-            core.hardSolved || 0,
-            core.totalHard || 0,
-            hardSolved,
-            hardTotal,
-            hardPercent
-        );
-
-        // 8. Secondary Stats Grid
+        // Stats Grid
         const cards = [
-            {
-                icon: "🏆",
-                title: "World Ranking",
-                value: rank > 0 ? `#${rank.toLocaleString()}` : "Unranked"
-            },
-            {
-                icon: "🎯",
-                title: "Acceptance Rate",
-                value: core.acceptanceRate ? `${core.acceptanceRate}%` : "0%"
-            },
-            {
-                icon: "⭐",
-                title: "Contribution Pts",
-                value: (core.contributionPoints || 0).toLocaleString()
-            },
-            {
-                icon: "🔥",
-                title: "Reputation",
-                value: (core.reputation || 0).toLocaleString()
-            }
+            { icon: "🏆", title: "World Ranking", value: ranking > 0 ? `#${ranking.toLocaleString()}` : "Unranked" },
+            { icon: "🎯", title: "Acceptance Rate", value: core.acceptanceRate ? `${core.acceptanceRate}%` : "0%" },
+            { icon: "⭐", title: "Contribution Pts", value: (core.contributionPoints || 0).toLocaleString() },
+            { icon: "🔥", title: "Reputation", value: (core.reputation || 0).toLocaleString() }
         ];
-
-        // Additional extra metrics if present
-        if (core.data) {
-            if (core.data.totalActiveDays !== undefined && core.data.totalActiveDays !== null) {
-                cards.push({
-                    icon: "📅",
-                    title: "Active Days",
-                    value: `${core.data.totalActiveDays} Days`
-                });
-            }
-            if (core.data.badgesCount !== undefined && core.data.badgesCount !== null) {
-                cards.push({
-                    icon: "🎖️",
-                    title: "Badges Earned",
-                    value: `${core.data.badgesCount}`
-                });
-            }
-        }
 
         statsGrid.innerHTML = cards.map(c => `
             <div class="stat-box">
@@ -497,6 +471,324 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join("");
     }
 
+    // ==========================================
+    // 2. CODEFORCES API & RENDERER
+    // ==========================================
+    async function fetchCodeforces(handle) {
+        setLoading(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+            const cleanHandle = encodeURIComponent(handle);
+            const userUrl = `https://codeforces.com/api/user.info?handles=${cleanHandle}`;
+
+            const response = await fetch(userUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error("Codeforces API response error");
+            }
+
+            const data = await response.json();
+            if (data.status !== "OK" || !data.result || data.result.length === 0) {
+                showErrorState("Codeforces Handle Not Found 💀", `Could not find "${handle}" on Codeforces.`);
+                return;
+            }
+
+            const cfUser = data.result[0];
+            currentData = {
+                platform: "codeforces",
+                username: cfUser.handle,
+                user: cfUser
+            };
+
+            saveRecentSearch(cfUser.handle);
+            renderRecentSearches();
+            renderCodeforcesDashboard(cfUser);
+            showToast(`Loaded ${cfUser.handle} on Codeforces! 🔺`, "success");
+
+        } catch (error) {
+            console.error(error);
+            showErrorState("Codeforces Lookup Failed 🔺", "Check handle spelling or try again in a few seconds.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function renderCodeforcesDashboard(user) {
+        welcomeState.style.display = "none";
+        errorState.style.display = "none";
+        statsDisplay.style.display = "flex";
+
+        // Hide Difficulty rings for Codeforces (CF uses single rating system)
+        ringsGrid.style.display = "none";
+        socialsBar.style.display = "none";
+
+        // Links
+        platformLinkText.textContent = "Codeforces";
+        platformLink.href = `https://codeforces.com/profile/${encodeURIComponent(user.handle)}`;
+
+        // Avatar & Name
+        displayUsername.textContent = user.handle;
+        avatarInitial.textContent = user.handle.charAt(0).toUpperCase();
+        const avatarUrl = user.titlePhoto || user.avatar;
+
+        if (avatarUrl && !avatarUrl.includes("no-avatar") && !avatarUrl.includes("no-title")) {
+            avatarImg.src = avatarUrl.startsWith("//") ? `https:${avatarUrl}` : avatarUrl;
+            avatarImg.style.display = "block";
+            avatarInitial.style.display = "none";
+            avatarImg.onerror = () => { avatarImg.style.display = "none"; avatarInitial.style.display = "block"; };
+        } else {
+            avatarImg.style.display = "none";
+            avatarInitial.style.display = "block";
+        }
+
+        const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+        if (fullName) {
+            displayRealname.textContent = fullName;
+            displayRealname.style.display = "inline-block";
+        } else {
+            displayRealname.style.display = "none";
+        }
+
+        const location = [user.city, user.country].filter(Boolean).join(", ");
+        displayCountry.textContent = location ? `📍 ${location}` : "";
+        displayCountry.style.display = location ? "inline-block" : "none";
+
+        displayAffiliation.textContent = user.organization ? `🏛️ ${user.organization}` : "";
+        displayAffiliation.style.display = user.organization ? "inline-block" : "none";
+
+        // Codeforces Rank & Aura Badge
+        const rating = user.rating || 0;
+        const maxRating = user.maxRating || 0;
+        const rank = (user.rank || "unrated").toUpperCase();
+
+        const badgeClass = getCodeforcesBadgeClass(user.rank);
+        platformBadge.textContent = `🔺 ${user.rank || "Unrated"}`;
+        platformBadge.className = `contest-badge ${badgeClass}`;
+        platformBadge.style.display = "inline-flex";
+
+        auraBadge.textContent = getCodeforcesAuraTitle(rating);
+        auraBadge.style.borderColor = getCodeforcesColor(user.rank);
+
+        userSubtext.textContent = `Codeforces Rating: ${rating} (Peak: ${maxRating})`;
+
+        // Contest Rating Banner
+        contestBanner.style.display = "grid";
+        contestLabel1.textContent = "CURRENT RATING";
+        contestLabel2.textContent = "PEAK RATING";
+        contestLabel3.textContent = "CONTRIBUTION";
+        contestLabel4.textContent = "FRIENDS";
+
+        animateValue(contestRatingEl, 0, rating);
+        contestGlobalRankEl.textContent = `${maxRating}`;
+        contestTopPercentEl.textContent = `${user.contribution > 0 ? "+" : ""}${user.contribution || 0}`;
+        contestAttendedEl.textContent = `${(user.friendOfCount || 0).toLocaleString()}`;
+
+        // Rating Progress Bar (Scale up to 4000)
+        progressCardTitle.textContent = "RATING PROGRESS";
+        totalDenomWrap.style.display = "inline";
+        animateValue(totalSolvedCount, 0, rating);
+        totalQuestionsCount.textContent = "4,000";
+        const percent = Math.min(((rating / 4000) * 100), 100).toFixed(1);
+        overallPercentage.textContent = `${percent}%`;
+        overallProgressBar.style.width = `${percent}%`;
+
+        // Secondary Stats Grid
+        const regDate = user.registrationTimeSeconds 
+            ? new Date(user.registrationTimeSeconds * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short" })
+            : "Unknown";
+
+        const cfCards = [
+            { icon: "👑", title: "Current Rank", value: user.rank ? capitalize(user.rank) : "Unrated" },
+            { icon: "🚀", title: "Max Rank", value: user.maxRank ? capitalize(user.maxRank) : "Unrated" },
+            { icon: "📅", title: "Registered", value: regDate },
+            { icon: "⭐", title: "Contribution", value: `${user.contribution || 0}` }
+        ];
+
+        statsGrid.innerHTML = cfCards.map(c => `
+            <div class="stat-box">
+                <div class="stat-icon-wrap">${c.icon}</div>
+                <div class="stat-info">
+                    <span class="stat-title">${c.title}</span>
+                    <span class="stat-number">${c.value}</span>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    function getCodeforcesBadgeClass(rank) {
+        if (!rank) return "badge-newbie";
+        const r = rank.toLowerCase();
+        if (r.includes("grandmaster")) return "badge-grandmaster";
+        if (r.includes("master")) return "badge-master";
+        if (r.includes("candidate")) return "badge-candidate-master";
+        if (r.includes("expert")) return "badge-expert";
+        if (r.includes("specialist")) return "badge-specialist";
+        if (r.includes("pupil")) return "badge-pupil";
+        return "badge-newbie";
+    }
+
+    function getCodeforcesColor(rank) {
+        if (!rank) return "#94a3b8";
+        const r = rank.toLowerCase();
+        if (r.includes("grandmaster")) return "#ef4444";
+        if (r.includes("master")) return "#f59e0b";
+        if (r.includes("candidate")) return "#a855f7";
+        if (r.includes("expert")) return "#3b82f6";
+        if (r.includes("specialist")) return "#06b6d4";
+        if (r.includes("pupil")) return "#10b981";
+        return "#94a3b8";
+    }
+
+    function getCodeforcesAuraTitle(rating) {
+        if (rating >= 3000) return "👑 Legendary Titan";
+        if (rating >= 2600) return "🔥 Grandmaster Demon";
+        if (rating >= 2300) return "⚔️ Mastermind";
+        if (rating >= 1900) return "⚡ Candidate Deity";
+        if (rating >= 1600) return "🚀 Expert Tactician";
+        if (rating >= 1400) return "⚡ Specialist";
+        if (rating >= 1200) return "🌱 Pupil Grinder";
+        return "🐣 Competitive Newbie";
+    }
+
+    // ==========================================
+    // 3. CODECHEF API & RENDERER
+    // ==========================================
+    async function fetchCodeChef(username) {
+        setLoading(true);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+            const cleanUser = encodeURIComponent(username);
+            const url = `https://competeapi.vercel.app/user/codechef/${cleanUser}`;
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error("CodeChef API error");
+            }
+
+            const data = await response.json();
+            if (!data || !data.rating_number) {
+                showErrorState("CodeChef User Not Found 👨‍🍳", `Could not find "${username}" on CodeChef.`);
+                return;
+            }
+
+            currentData = {
+                platform: "codechef",
+                username: username,
+                chef: data
+            };
+
+            saveRecentSearch(username);
+            renderRecentSearches();
+            renderCodeChefDashboard(data, username);
+            showToast(`Loaded ${username} on CodeChef! 👨‍🍳`, "success");
+
+        } catch (error) {
+            console.error(error);
+            showErrorState("CodeChef Lookup Failed 👨‍🍳", "Check username spelling or try again in a few seconds.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    function renderCodeChefDashboard(chef, searchHandle) {
+        welcomeState.style.display = "none";
+        errorState.style.display = "none";
+        statsDisplay.style.display = "flex";
+
+        ringsGrid.style.display = "none";
+        socialsBar.style.display = "none";
+
+        const handle = chef.username || searchHandle;
+        platformLinkText.textContent = "CodeChef";
+        platformLink.href = `https://www.codechef.com/users/${encodeURIComponent(handle)}`;
+
+        displayUsername.textContent = handle;
+        avatarInitial.textContent = handle.charAt(0).toUpperCase();
+        avatarImg.style.display = "none";
+        avatarInitial.style.display = "block";
+
+        displayRealname.style.display = "none";
+        displayCountry.textContent = chef.country ? `📍 ${chef.country}` : "";
+        displayCountry.style.display = chef.country ? "inline-block" : "none";
+
+        displayAffiliation.textContent = chef.institution ? `🏛️ ${chef.institution}` : "";
+        displayAffiliation.style.display = chef.institution ? "inline-block" : "none";
+
+        // CodeChef Stars & Aura Badge
+        const rating = Number(chef.rating_number) || 0;
+        const maxRank = Number(chef.max_rank) || rating;
+        const stars = chef.rating ? chef.rating.trim() : "1★";
+
+        platformBadge.textContent = `⭐ ${stars}`;
+        platformBadge.className = "contest-badge badge-guardian";
+        platformBadge.style.display = "inline-flex";
+
+        auraBadge.textContent = getCodeChefAuraTitle(rating);
+        auraBadge.style.borderColor = "#f59e0b";
+
+        userSubtext.textContent = `CodeChef Rating: ${rating} • Peak: ${maxRank}`;
+
+        // Contest Rating Banner
+        contestBanner.style.display = "grid";
+        contestLabel1.textContent = "RATING";
+        contestLabel2.textContent = "STAR TIER";
+        contestLabel3.textContent = "PEAK RATING";
+        contestLabel4.textContent = "USER TYPE";
+
+        animateValue(contestRatingEl, 0, rating);
+        contestGlobalRankEl.textContent = `${stars}`;
+        contestTopPercentEl.textContent = `${maxRank}`;
+        contestAttendedEl.textContent = `${chef.user_type || "Competitive"}`;
+
+        // Progress Bar (Scale up to 3500)
+        progressCardTitle.textContent = "RATING LEVEL";
+        totalDenomWrap.style.display = "inline";
+        animateValue(totalSolvedCount, 0, rating);
+        totalQuestionsCount.textContent = "3,500";
+        const percent = Math.min(((rating / 3500) * 100), 100).toFixed(1);
+        overallPercentage.textContent = `${percent}%`;
+        overallProgressBar.style.width = `${percent}%`;
+
+        // Secondary Cards
+        const cleanRank = (r) => (r && !r.includes("Inactive")) ? r.trim() : "Unranked";
+        const chefCards = [
+            { icon: "⭐", title: "Star Rating", value: stars },
+            { icon: "🏆", title: "Global Rank", value: cleanRank(chef.global_rank) },
+            { icon: "🌍", title: "Country Rank", value: cleanRank(chef.country_rank) },
+            { icon: "🎓", title: "User Category", value: chef.user_type || "Student" }
+        ];
+
+        statsGrid.innerHTML = chefCards.map(c => `
+            <div class="stat-box">
+                <div class="stat-icon-wrap">${c.icon}</div>
+                <div class="stat-info">
+                    <span class="stat-title">${c.title}</span>
+                    <span class="stat-number">${c.value}</span>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    function getCodeChefAuraTitle(rating) {
+        if (rating >= 2500) return "👑 7★ Grandmaster";
+        if (rating >= 2200) return "🔥 6★ Algorithm Demon";
+        if (rating >= 2000) return "⚔️ 5★ Master Chef";
+        if (rating >= 1800) return "⚡ 4★ Daily Grinder";
+        if (rating >= 1600) return "🚀 3★ Code Knight";
+        if (rating >= 1400) return "🌱 2★ Rising Star";
+        return "🐣 1★ Novice Chef";
+    }
+
+    // ==========================================
+    // SHARED UTILITIES
+    // ==========================================
     function renderSocials(profile) {
         if (!profile) {
             socialsBar.style.display = "none";
@@ -528,41 +820,90 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function shareStats(aggregated) {
-        const { core, contest, username } = aggregated;
-        const userHandle = core.username || username;
-        const totalSolved = core.totalSolved || 0;
-        const totalQuestions = core.totalQuestions || 0;
-        const rank = core.ranking ? `#${core.ranking.toLocaleString()}` : "Unranked";
-        const aura = auraBadge.textContent;
-        const acc = core.acceptanceRate || 0;
+    function updateProgressRing(circle, solvedCount, totalCount, solvedEl, totalEl, percentEl) {
+        const solved = Number(solvedCount) || 0;
+        const total = Number(totalCount) || 0;
+        const percentage = total > 0 ? (solved / total) * 100 : 0;
+        const offset = CIRCUMFERENCE - (percentage / 100) * CIRCUMFERENCE;
 
-        let contestInfo = "";
-        if (contest && contest.contestAttend > 0) {
-            contestInfo = `🏆 Contest Rating: ${Math.round(contest.contestRating)} (Top ${contest.contestTopPercentage}%)\n`;
+        circle.style.strokeDashoffset = CIRCUMFERENCE;
+        setTimeout(() => {
+            circle.style.strokeDashoffset = offset;
+        }, 80);
+
+        animateValue(solvedEl, 0, solved);
+        totalEl.textContent = total.toLocaleString();
+        percentEl.textContent = `${percentage.toFixed(1)}%`;
+    }
+
+    function animateValue(element, start, end, duration = 1000, suffix = "") {
+        if (isNaN(end)) {
+            element.textContent = end + suffix;
+            return;
         }
 
-        const summary = [
-            `⚡ LeetCode Vibe Check: @${userHandle}`,
-            `✨ Aura: ${aura}`,
-            contestInfo.trim(),
-            `🌐 World Rank: ${rank}`,
-            `📊 Solved: ${totalSolved}/${totalQuestions}`,
-            `🟢 Easy: ${core.easySolved || 0} | 🟡 Med: ${core.mediumSolved || 0} | 🔴 Hard: ${core.hardSolved || 0}`,
-            `🎯 Acceptance: ${acc}%`,
-            `🔗 https://leetcode.com/u/${userHandle}/`
-        ].filter(Boolean).join("\n");
+        const range = end - start;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = Math.floor(start + range * easeOut);
+
+            element.textContent = current.toLocaleString() + suffix;
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                element.textContent = end.toLocaleString() + suffix;
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    function shareStats(data) {
+        let summary = "";
+        if (data.platform === "leetcode") {
+            const { core, contest, username } = data;
+            const userHandle = core.username || username;
+            summary = [
+                `⚡ LeetCode Vibe Check: @${userHandle}`,
+                `✨ Aura: ${auraBadge.textContent}`,
+                contest ? `🏆 Contest Rating: ${Math.round(contest.contestRating)} (Top ${contest.contestTopPercentage}%)` : null,
+                `📊 Solved: ${core.totalSolved || 0}/${core.totalQuestions || 0} (${overallPercentage.textContent})`,
+                `🎯 Acceptance: ${core.acceptanceRate || 0}%`,
+                `🔗 https://leetcode.com/u/${userHandle}/`
+            ].filter(Boolean).join("\n");
+        } else if (data.platform === "codeforces") {
+            const u = data.user;
+            summary = [
+                `🔺 Codeforces Vibe Check: @${u.handle}`,
+                `✨ Aura: ${auraBadge.textContent}`,
+                `👑 Rank: ${capitalize(u.rank || "Unrated")} (Peak: ${capitalize(u.maxRank || "Unrated")})`,
+                `🏆 Rating: ${u.rating || 0} (Peak: ${u.maxRating || 0})`,
+                `⭐ Contribution: ${u.contribution || 0}`,
+                `🔗 https://codeforces.com/profile/${u.handle}`
+            ].join("\n");
+        } else if (data.platform === "codechef") {
+            const c = data.chef;
+            summary = [
+                `👨‍🍳 CodeChef Vibe Check: @${data.username}`,
+                `✨ Aura: ${auraBadge.textContent}`,
+                `⭐ Rating: ${c.rating || "1★"} (${c.rating_number || 0})`,
+                `🏆 Peak Rating: ${c.max_rank || 0}`,
+                `🏛️ ${c.institution || "CodeChef Competitor"}`,
+                `🔗 https://www.codechef.com/users/${data.username}`
+            ].join("\n");
+        }
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(summary).then(() => {
                 copyBtnText.textContent = "Copied! ✨";
-                showToast("Stats card copied to clipboard! Share your grind 🚀", "success");
-                setTimeout(() => {
-                    copyBtnText.textContent = "Share Vibe";
-                }, 2000);
-            }).catch(() => {
-                fallbackCopyText(summary);
-            });
+                showToast("Stats card copied to clipboard! 🚀", "success");
+                setTimeout(() => { copyBtnText.textContent = "Share Vibe"; }, 2000);
+            }).catch(() => fallbackCopyText(summary));
         } else {
             fallbackCopyText(summary);
         }
@@ -587,19 +928,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function saveRecentSearch(username) {
         try {
-            let recents = JSON.parse(localStorage.getItem("leetmetric_recents") || "[]");
+            const key = `leetmetric_recents_${currentPlatform}`;
+            let recents = JSON.parse(localStorage.getItem(key) || "[]");
             recents = recents.filter(u => u.toLowerCase() !== username.toLowerCase());
             recents.unshift(username);
             if (recents.length > 4) recents = recents.slice(0, 4);
-            localStorage.setItem("leetmetric_recents", JSON.stringify(recents));
+            localStorage.setItem(key, JSON.stringify(recents));
         } catch (e) {
-            console.warn("Storage error", e);
+            console.warn(e);
         }
     }
 
     function renderRecentSearches() {
         try {
-            const recents = JSON.parse(localStorage.getItem("leetmetric_recents") || "[]");
+            const key = `leetmetric_recents_${currentPlatform}`;
+            const recents = JSON.parse(localStorage.getItem(key) || "[]");
             if (recents.length > 0) {
                 recentGroup.style.display = "flex";
                 recentTags.innerHTML = recents.map(u => `
@@ -621,9 +964,12 @@ document.addEventListener("DOMContentLoaded", () => {
         toastContainer.appendChild(toast);
 
         setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 3000);
+    }
+
+    function capitalize(str) {
+        if (!str) return "";
+        return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
     }
 });
