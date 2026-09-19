@@ -1,11 +1,11 @@
 /**
  * LeetMetric ⚡ Gen-Z LeetCode Stats & Aura Tracker
- * Dynamic stats visualization with animated SVG progress rings,
- * aura rank calculation, error resilience & clipboard sharing.
+ * Enriched with Real Profile Avatar, Contest Analytics,
+ * Social links, and Animated SVG Visualizations.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-    // DOM Elements
+    // DOM Elements - Search Form
     const searchForm = document.getElementById("search-form");
     const searchButton = document.getElementById("search-btn");
     const btnText = searchButton.querySelector(".btn-text");
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const usernameInput = document.getElementById("user-input");
     const clearInputBtn = document.getElementById("clear-input-btn");
 
-    // States
+    // UI View States
     const welcomeState = document.getElementById("welcome-state");
     const loadingState = document.getElementById("loading-state");
     const errorState = document.getElementById("error-state");
@@ -23,14 +23,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const errorMessage = document.getElementById("error-message");
     const errorRetryBtn = document.getElementById("error-retry-btn");
 
-    // Profile Headers
+    // Profile Header Elements
+    const avatarImg = document.getElementById("avatar-img");
     const avatarInitial = document.getElementById("avatar-initial");
     const displayUsername = document.getElementById("display-username");
+    const displayRealname = document.getElementById("display-realname");
+    const displayCountry = document.getElementById("display-country");
+    const displayAffiliation = document.getElementById("display-affiliation");
     const auraBadge = document.getElementById("aura-badge");
+    const contestBadge = document.getElementById("contest-badge");
     const userSubtext = document.getElementById("user-subtext");
     const leetcodeLink = document.getElementById("leetcode-link");
     const copyStatsBtn = document.getElementById("copy-stats-btn");
     const copyBtnText = document.getElementById("copy-btn-text");
+    const socialsBar = document.getElementById("socials-bar");
+
+    // Contest Stats Banner Elements
+    const contestBanner = document.getElementById("contest-banner");
+    const contestRatingEl = document.getElementById("contest-rating");
+    const contestGlobalRankEl = document.getElementById("contest-global-rank");
+    const contestTopPercentEl = document.getElementById("contest-top-percent");
+    const contestAttendedEl = document.getElementById("contest-attended");
 
     // Total Solved Progress Elements
     const totalSolvedCount = document.getElementById("total-solved-count");
@@ -38,7 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const overallPercentage = document.getElementById("overall-percentage");
     const overallProgressBar = document.getElementById("overall-progress-bar");
 
-    // SVG Rings & Labels
+    // Difficulty Rings
     const easyCircle = document.getElementById("easy-circle");
     const easySolved = document.getElementById("easy-solved");
     const easyTotal = document.getElementById("easy-total");
@@ -60,10 +73,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const recentGroup = document.getElementById("recent-group");
     const toastContainer = document.getElementById("toast-container");
 
-    const CIRCUMFERENCE = 2 * Math.PI * 50; // Radius is 50 -> 314.159
-    let currentStatsData = null;
+    const CIRCUMFERENCE = 2 * Math.PI * 50; // Radius 50 = ~314.159
+    let currentAggregatedData = null;
 
-    // Initialize Recent Searches
+    // Initialize Recent Searches from localStorage
     renderRecentSearches();
 
     // Input Events
@@ -86,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         handleSearch();
     });
 
-    // Hot pick tags click listener
+    // Preset / Hot Pick Chips
     presetTags.addEventListener("click", (e) => {
         const chip = e.target.closest(".tag-chip");
         if (chip && chip.dataset.username) {
@@ -96,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Recent tags click listener
+    // Recent Tags Chips
     recentTags.addEventListener("click", (e) => {
         const chip = e.target.closest(".tag-chip");
         if (chip && chip.dataset.username) {
@@ -106,20 +119,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Copy / Share Stats Event
+    // Share / Copy Stats Event
     copyStatsBtn.addEventListener("click", () => {
-        if (!currentStatsData) return;
-        shareStats(currentStatsData);
+        if (!currentAggregatedData) return;
+        shareStats(currentAggregatedData);
     });
 
-    // Search Handler
     function handleSearch() {
         const username = usernameInput.value.trim();
         if (!validateUsername(username)) return;
-        fetchUserDetails(username);
+        fetchComprehensiveUserData(username);
     }
 
-    // Username Validation
     function validateUsername(username) {
         if (!username) {
             showToast("Please enter a LeetCode username", "error");
@@ -136,11 +147,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
     }
 
-    // Set Loading State
     function setLoading(isLoading) {
         searchButton.disabled = isLoading;
         if (isLoading) {
-            btnText.textContent = "Fetching...";
+            btnText.textContent = "Summoning...";
             btnShortcut.style.display = "none";
             btnLoader.style.display = "inline-block";
 
@@ -156,35 +166,58 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Fetch User Details with AbortController Timeout
-    async function fetchUserDetails(username) {
+    /**
+     * Concurrently fetch basic stats, profile details (avatar, name, country),
+     * and contest performance using Promise.allSettled.
+     */
+    async function fetchComprehensiveUserData(username) {
         setLoading(true);
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 12000);
 
         try {
-            const url = `https://leetcode-stats.tashif.codes/${encodeURIComponent(username)}`;
-            const response = await fetch(url, { signal: controller.signal });
+            const cleanUser = encodeURIComponent(username);
+            const coreStatsUrl = `https://leetcode-stats.tashif.codes/${cleanUser}`;
+            const profileUrl = `https://alfa-leetcode-api.onrender.com/${cleanUser}`;
+            const contestUrl = `https://alfa-leetcode-api.onrender.com/${cleanUser}/contest`;
+
+            const [coreRes, profileRes, contestRes] = await Promise.allSettled([
+                fetch(coreStatsUrl, { signal: controller.signal }).then(r => r.json()),
+                fetch(profileUrl, { signal: controller.signal }).then(r => r.json()),
+                fetch(contestUrl, { signal: controller.signal }).then(r => r.json())
+            ]);
+
             clearTimeout(timeoutId);
 
-            if (!response.ok) {
-                throw new Error(`Server responded with status: ${response.status}`);
+            // Verify core stats
+            if (coreRes.status !== "fulfilled" || !coreRes.value) {
+                throw new Error("Unable to fetch core stats");
             }
 
-            const data = await response.json();
+            const coreData = coreRes.value;
 
-            // Tashif API returns HTTP 200 with { status: "error", message: "user does not exist" }
-            if (data.status === "error" || data.message === "user does not exist") {
-                showErrorState("User Not Found 💀", `We couldn't find "@${username}" on LeetCode. Please check for typos.`);
+            // Handle API non-existent user response
+            if (coreData.status === "error" || coreData.message === "user does not exist") {
+                showErrorState("User Not Found 💀", `We couldn't find "@${username}" on LeetCode. Double check the spelling or try another user.`);
                 return;
             }
 
-            // Successfully received valid stats
-            currentStatsData = data;
+            // Extract optional profile & contest data if available
+            const profileData = profileRes.status === "fulfilled" && profileRes.value && !profileRes.value.errors ? profileRes.value : null;
+            const contestData = contestRes.status === "fulfilled" && contestRes.value && !contestRes.value.errors ? contestRes.value : null;
+
+            const aggregated = {
+                core: coreData,
+                profile: profileData,
+                contest: contestData,
+                username: username
+            };
+
+            currentAggregatedData = aggregated;
             saveRecentSearch(username);
             renderRecentSearches();
-            displayUserData(data, username);
-            showToast(`Loaded stats for @${username}! 🚀`, "success");
+            renderDashboard(aggregated);
+            showToast(`Loaded live vibe for @${username}! 🚀`, "success");
 
         } catch (error) {
             console.error("Fetch error:", error);
@@ -198,7 +231,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Error State Renderer
     function showErrorState(title, message) {
         errorTitle.textContent = title;
         errorMessage.textContent = message;
@@ -208,30 +240,45 @@ document.addEventListener("DOMContentLoaded", () => {
         errorState.style.display = "flex";
     }
 
-    // Calculate Aura Rank
-    function getAuraRank(solved, ranking) {
-        if (ranking && ranking > 0 && ranking <= 5000) {
-            return { title: "👑 LeetCode God", color: "#f59e0b" };
+    /**
+     * Compute Dynamic Gen-Z Aura Rank based on problem count, contest rating & rank
+     */
+    function calculateAura(coreData, contestData) {
+        const solved = Number(coreData.totalSolved) || 0;
+        const ranking = Number(coreData.ranking) || 0;
+        const contestRating = contestData ? Math.round(Number(contestData.contestRating) || 0) : 0;
+        const contestBadgeName = contestData && contestData.contestBadges ? contestData.contestBadges.name : null;
+
+        // Base score calculation
+        let auraPoints = solved * 12 + (coreData.hardSolved || 0) * 35;
+        if (contestRating > 1500) {
+            auraPoints += (contestRating - 1500) * 8;
         }
-        if (solved >= 1000) {
-            return { title: "🔥 Algorithm Demon", color: "#ef4444" };
+
+        if (contestBadgeName === "Guardian" || (contestRating >= 2200)) {
+            return { title: "👑 LeetCode Guardian God", color: "#f59e0b", points: auraPoints };
         }
-        if (solved >= 500) {
-            return { title: "⚔️ Grandmaster", color: "#ec4899" };
+        if (contestBadgeName === "Knight" || (contestRating >= 1850)) {
+            return { title: "⚔️ LeetCode Knight", color: "#8b5cf6", points: auraPoints };
         }
-        if (solved >= 250) {
-            return { title: "⚡ Daily Grinder", color: "#8b5cf6" };
+        if (ranking > 0 && ranking <= 5000) {
+            return { title: "🔥 Algorithm Demon", color: "#ef4444", points: auraPoints };
         }
-        if (solved >= 100) {
-            return { title: "🚀 Code Samurai", color: "#3b82f6" };
+        if (solved >= 800) {
+            return { title: "⚡ Grandmaster", color: "#ec4899", points: auraPoints };
         }
-        if (solved >= 25) {
-            return { title: "🌱 Rising Coder", color: "#10b981" };
+        if (solved >= 400) {
+            return { title: "🚀 Code Samurai", color: "#3b82f6", points: auraPoints };
         }
-        return { title: "🐣 DSA Rookie", color: "#94a3b8" };
+        if (solved >= 150) {
+            return { title: "⚡ Daily Grinder", color: "#06b6d4", points: auraPoints };
+        }
+        if (solved >= 40) {
+            return { title: "🌱 Rising Coder", color: "#10b981", points: auraPoints };
+        }
+        return { title: "🐣 DSA Rookie", color: "#94a3b8", points: auraPoints };
     }
 
-    // Animate Numeric Count-Up
     function animateValue(element, start, end, duration = 1000, suffix = "") {
         if (isNaN(end)) {
             element.textContent = end + suffix;
@@ -244,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
         function update(currentTime) {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            // Ease out cubic
             const easeOut = 1 - Math.pow(1 - progress, 3);
             const current = Math.floor(start + range * easeOut);
 
@@ -260,14 +306,12 @@ document.addEventListener("DOMContentLoaded", () => {
         requestAnimationFrame(update);
     }
 
-    // Update Progress Ring with SVG Dashoffset
     function updateProgressRing(circle, solvedCount, totalCount, solvedEl, totalEl, percentEl) {
         const solved = Number(solvedCount) || 0;
         const total = Number(totalCount) || 0;
         const percentage = total > 0 ? (solved / total) * 100 : 0;
         const offset = CIRCUMFERENCE - (percentage / 100) * CIRCUMFERENCE;
 
-        // Reset and animate stroke
         circle.style.strokeDashoffset = CIRCUMFERENCE;
         setTimeout(() => {
             circle.style.strokeDashoffset = offset;
@@ -278,40 +322,105 @@ document.addEventListener("DOMContentLoaded", () => {
         percentEl.textContent = `${percentage.toFixed(1)}%`;
     }
 
-    // Display User Data
-    function displayUserData(data, username) {
+    /**
+     * Render the active stats dashboard with avatar, contest metrics & problem breakdown
+     */
+    function renderDashboard(aggregated) {
+        const { core, profile, contest, username } = aggregated;
+
         welcomeState.style.display = "none";
         errorState.style.display = "none";
         statsDisplay.style.display = "flex";
 
-        // Header User Profile Info
-        const userHandle = data.username || username;
+        const userHandle = core.username || username;
         displayUsername.textContent = userHandle;
-        avatarInitial.textContent = userHandle.charAt(0).toUpperCase();
         leetcodeLink.href = `https://leetcode.com/u/${encodeURIComponent(userHandle)}/`;
 
-        // Calculate and Set Aura Badge
-        const totalSolved = Number(data.totalSolved) || 0;
-        const totalQuestions = Number(data.totalQuestions) || 0;
-        const rank = Number(data.ranking) || 0;
-        const aura = getAuraRank(totalSolved, rank);
+        // 1. Profile Avatar
+        avatarInitial.textContent = userHandle.charAt(0).toUpperCase();
+        if (profile && profile.avatar && !profile.avatar.includes("default_avatar.jpg")) {
+            avatarImg.src = profile.avatar;
+            avatarImg.style.display = "block";
+            avatarInitial.style.display = "none";
+            avatarImg.onerror = () => {
+                avatarImg.style.display = "none";
+                avatarInitial.style.display = "block";
+            };
+        } else {
+            avatarImg.style.display = "none";
+            avatarInitial.style.display = "block";
+        }
 
+        // 2. Real Name, Country & Organization
+        if (profile && profile.name && profile.name.trim() !== "" && profile.name.toLowerCase() !== userHandle.toLowerCase()) {
+            displayRealname.textContent = profile.name;
+            displayRealname.style.display = "inline-block";
+        } else {
+            displayRealname.style.display = "none";
+        }
+
+        if (profile && profile.country) {
+            displayCountry.textContent = `📍 ${profile.country}`;
+            displayCountry.style.display = "inline-block";
+        } else {
+            displayCountry.style.display = "none";
+        }
+
+        const org = profile ? (profile.company || profile.school) : null;
+        if (org) {
+            displayAffiliation.textContent = `🏛️ ${org}`;
+            displayAffiliation.style.display = "inline-block";
+        } else {
+            displayAffiliation.style.display = "none";
+        }
+
+        // 3. Aura & Contest Badges
+        const aura = calculateAura(core, contest);
         auraBadge.textContent = aura.title;
         auraBadge.style.borderColor = aura.color;
-        userSubtext.textContent = rank > 0 ? `Global Rank: #${rank.toLocaleString()}` : "LeetCode Explorer";
 
-        // Overall Solved Progress
+        if (contest && contest.contestBadges && contest.contestBadges.name) {
+            const badgeName = contest.contestBadges.name;
+            contestBadge.textContent = `🛡️ ${badgeName}`;
+            contestBadge.className = `contest-badge badge-${badgeName.toLowerCase()}`;
+            contestBadge.style.display = "inline-flex";
+        } else {
+            contestBadge.style.display = "none";
+        }
+
+        const rank = Number(core.ranking) || 0;
+        userSubtext.textContent = rank > 0 
+            ? `Global Rank: #${rank.toLocaleString()} • Aura: ${aura.points.toLocaleString()} pts`
+            : `LeetCode Explorer • Aura: ${aura.points.toLocaleString()} pts`;
+
+        // 4. Social Links
+        renderSocials(profile);
+
+        // 5. Contest Analytics Banner
+        if (contest && contest.contestAttend && contest.contestAttend > 0) {
+            contestBanner.style.display = "grid";
+            animateValue(contestRatingEl, 0, Math.round(contest.contestRating));
+            contestGlobalRankEl.textContent = `#${(contest.contestGlobalRanking || 0).toLocaleString()}`;
+            contestTopPercentEl.textContent = `Top ${(contest.contestTopPercentage || 0)}%`;
+            contestAttendedEl.textContent = `${contest.contestAttend} Attended`;
+        } else {
+            contestBanner.style.display = "none";
+        }
+
+        // 6. Overall Solved Progress Banner
+        const totalSolved = Number(core.totalSolved) || 0;
+        const totalQuestions = Number(core.totalQuestions) || 0;
         const overallPercentValue = totalQuestions > 0 ? ((totalSolved / totalQuestions) * 100).toFixed(1) : "0.0";
         animateValue(totalSolvedCount, 0, totalSolved);
         totalQuestionsCount.textContent = totalQuestions.toLocaleString();
         overallPercentage.textContent = `${overallPercentValue}%`;
         overallProgressBar.style.width = `${Math.min(overallPercentValue, 100)}%`;
 
-        // Update Rings
+        // 7. Difficulty Rings
         updateProgressRing(
             easyCircle,
-            data.easySolved || 0,
-            data.totalEasy || 0,
+            core.easySolved || 0,
+            core.totalEasy || 0,
             easySolved,
             easyTotal,
             easyPercent
@@ -319,8 +428,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateProgressRing(
             mediumCircle,
-            data.mediumSolved || 0,
-            data.totalMedium || 0,
+            core.mediumSolved || 0,
+            core.totalMedium || 0,
             mediumSolved,
             mediumTotal,
             mediumPercent
@@ -328,14 +437,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateProgressRing(
             hardCircle,
-            data.hardSolved || 0,
-            data.totalHard || 0,
+            core.hardSolved || 0,
+            core.totalHard || 0,
             hardSolved,
             hardTotal,
             hardPercent
         );
 
-        // Secondary Stats Grid
+        // 8. Secondary Stats Grid
         const cards = [
             {
                 icon: "🏆",
@@ -345,34 +454,34 @@ document.addEventListener("DOMContentLoaded", () => {
             {
                 icon: "🎯",
                 title: "Acceptance Rate",
-                value: data.acceptanceRate ? `${data.acceptanceRate}%` : "0%"
+                value: core.acceptanceRate ? `${core.acceptanceRate}%` : "0%"
             },
             {
                 icon: "⭐",
                 title: "Contribution Pts",
-                value: (data.contributionPoints || 0).toLocaleString()
+                value: (core.contributionPoints || 0).toLocaleString()
             },
             {
                 icon: "🔥",
                 title: "Reputation",
-                value: (data.reputation || 0).toLocaleString()
+                value: (core.reputation || 0).toLocaleString()
             }
         ];
 
         // Additional extra metrics if present
-        if (data.data) {
-            if (data.data.totalActiveDays !== undefined && data.data.totalActiveDays !== null) {
+        if (core.data) {
+            if (core.data.totalActiveDays !== undefined && core.data.totalActiveDays !== null) {
                 cards.push({
                     icon: "📅",
                     title: "Active Days",
-                    value: `${data.data.totalActiveDays} Days`
+                    value: `${core.data.totalActiveDays} Days`
                 });
             }
-            if (data.data.badgesCount !== undefined && data.data.badgesCount !== null) {
+            if (core.data.badgesCount !== undefined && core.data.badgesCount !== null) {
                 cards.push({
                     icon: "🎖️",
                     title: "Badges Earned",
-                    value: `${data.data.badgesCount}`
+                    value: `${core.data.badgesCount}`
                 });
             }
         }
@@ -388,29 +497,66 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join("");
     }
 
-    // Share / Copy Stats to Clipboard
-    function shareStats(data) {
-        const username = data.username || usernameInput.value;
-        const totalSolved = data.totalSolved || 0;
-        const totalQuestions = data.totalQuestions || 0;
-        const rank = data.ranking ? `#${data.ranking.toLocaleString()}` : "Unranked";
+    function renderSocials(profile) {
+        if (!profile) {
+            socialsBar.style.display = "none";
+            return;
+        }
+
+        const links = [];
+        if (profile.gitHub) {
+            const ghUrl = profile.gitHub.startsWith("http") ? profile.gitHub : `https://github.com/${profile.gitHub}`;
+            links.push(`<a href="${ghUrl}" target="_blank" rel="noopener noreferrer" class="social-chip">🐙 GitHub</a>`);
+        }
+        if (profile.twitter) {
+            const twUrl = profile.twitter.startsWith("http") ? profile.twitter : `https://twitter.com/${profile.twitter}`;
+            links.push(`<a href="${twUrl}" target="_blank" rel="noopener noreferrer" class="social-chip">🐦 Twitter / X</a>`);
+        }
+        if (profile.linkedIN) {
+            const inUrl = profile.linkedIN.startsWith("http") ? profile.linkedIN : `https://linkedin.com/in/${profile.linkedIN}`;
+            links.push(`<a href="${inUrl}" target="_blank" rel="noopener noreferrer" class="social-chip">💼 LinkedIn</a>`);
+        }
+        if (Array.isArray(profile.website) && profile.website.length > 0 && profile.website[0]) {
+            links.push(`<a href="${profile.website[0]}" target="_blank" rel="noopener noreferrer" class="social-chip">🌐 Website</a>`);
+        }
+
+        if (links.length > 0) {
+            socialsBar.innerHTML = links.join("");
+            socialsBar.style.display = "flex";
+        } else {
+            socialsBar.style.display = "none";
+        }
+    }
+
+    function shareStats(aggregated) {
+        const { core, contest, username } = aggregated;
+        const userHandle = core.username || username;
+        const totalSolved = core.totalSolved || 0;
+        const totalQuestions = core.totalQuestions || 0;
+        const rank = core.ranking ? `#${core.ranking.toLocaleString()}` : "Unranked";
         const aura = auraBadge.textContent;
-        const acc = data.acceptanceRate || 0;
+        const acc = core.acceptanceRate || 0;
+
+        let contestInfo = "";
+        if (contest && contest.contestAttend > 0) {
+            contestInfo = `🏆 Contest Rating: ${Math.round(contest.contestRating)} (Top ${contest.contestTopPercentage}%)\n`;
+        }
 
         const summary = [
-            `⚡ LeetCode Vibe Check: @${username}`,
+            `⚡ LeetCode Vibe Check: @${userHandle}`,
             `✨ Aura: ${aura}`,
-            `🏆 World Rank: ${rank}`,
+            contestInfo.trim(),
+            `🌐 World Rank: ${rank}`,
             `📊 Solved: ${totalSolved}/${totalQuestions}`,
-            `🟢 Easy: ${data.easySolved || 0} | 🟡 Med: ${data.mediumSolved || 0} | 🔴 Hard: ${data.hardSolved || 0}`,
+            `🟢 Easy: ${core.easySolved || 0} | 🟡 Med: ${core.mediumSolved || 0} | 🔴 Hard: ${core.hardSolved || 0}`,
             `🎯 Acceptance: ${acc}%`,
-            `🔗 https://leetcode.com/u/${username}/`
-        ].join("\n");
+            `🔗 https://leetcode.com/u/${userHandle}/`
+        ].filter(Boolean).join("\n");
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(summary).then(() => {
                 copyBtnText.textContent = "Copied! ✨";
-                showToast("Stats copied to clipboard! Share your grind 🚀", "success");
+                showToast("Stats card copied to clipboard! Share your grind 🚀", "success");
                 setTimeout(() => {
                     copyBtnText.textContent = "Share Vibe";
                 }, 2000);
@@ -422,7 +568,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Fallback Clipboard Copy
     function fallbackCopyText(text) {
         const textArea = document.createElement("textarea");
         textArea.value = text;
@@ -440,14 +585,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.removeChild(textArea);
     }
 
-    // Local Storage Recent Searches
     function saveRecentSearch(username) {
         try {
             let recents = JSON.parse(localStorage.getItem("leetmetric_recents") || "[]");
-            // Remove existing duplicate
             recents = recents.filter(u => u.toLowerCase() !== username.toLowerCase());
             recents.unshift(username);
-            // Cap at 4 items
             if (recents.length > 4) recents = recents.slice(0, 4);
             localStorage.setItem("leetmetric_recents", JSON.stringify(recents));
         } catch (e) {
@@ -471,7 +613,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Toast Notification System
     function showToast(message, type = "success") {
         const toast = document.createElement("div");
         toast.className = `toast toast-${type}`;

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LeetMetric ⚡ Gen-Z LeetCode Stats & Aura Tracker</title>
-    <meta name="description" content="Track your LeetCode problem-solving stats, aura rank, acceptance rate, and progress with high-octane Gen-Z cyber aesthetics.">
+    <meta name="description" content="Track your LeetCode problem-solving stats, profile avatar, contest rating, aura rank, acceptance rate, and progress with high-octane Gen-Z cyber aesthetics.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,7 +45,7 @@
                     <input 
                         type="text" 
                         id="user-input" 
-                        placeholder="Enter LeetCode handle (e.g. Yash8092, tourist)..." 
+                        placeholder="Enter LeetCode handle (e.g. neal_wu, tourist)..." 
                         autocomplete="off" 
                         spellcheck="false"
                         maxlength="35"
@@ -88,9 +88,10 @@
             <div id="welcome-state" class="welcome-card glass-panel">
                 <div class="welcome-icon-box">👾</div>
                 <h2>Ready for the Vibe Check?</h2>
-                <p>Type in any valid LeetCode username above or tap one of the hot picks to pull live metrics, rank, acceptance rates, and dynamic aura!</p>
+                <p>Type in any valid LeetCode username above or tap one of the hot picks to pull live metrics, real avatar, contest rating, rank, and dynamic aura!</p>
                 <div class="feature-pills">
-                    <span class="pill">⚡ Real-time Sync</span>
+                    <span class="pill">🖼️ Real Profile Avatar</span>
+                    <span class="pill">🏆 Contest Rating & Badges</span>
                     <span class="pill">🎨 Gen-Z Aura Badges</span>
                     <span class="pill">📊 Animated SVG Rings</span>
                     <span class="pill">🚀 One-Click Share</span>
@@ -133,12 +134,19 @@
                 <div class="profile-header">
                     <div class="user-meta">
                         <div class="user-avatar" id="avatar-container">
+                            <img id="avatar-img" class="avatar-img" alt="Profile Picture" style="display: none;">
                             <span id="avatar-initial">?</span>
                         </div>
                         <div class="user-info">
                             <div class="username-row">
                                 <h2 id="display-username">Username</h2>
                                 <span id="aura-badge" class="aura-badge">⚡ DSA Rookie</span>
+                                <span id="contest-badge" class="contest-badge" style="display: none;"></span>
+                            </div>
+                            <div class="user-details-row">
+                                <span id="display-realname" class="user-realname"></span>
+                                <span id="display-country" class="meta-pill" style="display: none;"></span>
+                                <span id="display-affiliation" class="meta-pill" style="display: none;"></span>
                             </div>
                             <p class="user-subtext" id="user-subtext">LeetCode Competitor</p>
                         </div>
@@ -159,6 +167,29 @@
                             </svg>
                             <span id="copy-btn-text">Share Vibe</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Social Links Bar (Optional, rendered if present) -->
+                <div id="socials-bar" class="socials-bar" style="display: none;"></div>
+
+                <!-- Contest Stats Banner (Shown when contest data is available) -->
+                <div id="contest-banner" class="contest-banner" style="display: none;">
+                    <div class="contest-stat-item">
+                        <span class="contest-label">CONTEST RATING</span>
+                        <span class="contest-value highlight-rating" id="contest-rating">0</span>
+                    </div>
+                    <div class="contest-stat-item">
+                        <span class="contest-label">GLOBAL RANK</span>
+                        <span class="contest-value" id="contest-global-rank">#0</span>
+                    </div>
+                    <div class="contest-stat-item">
+                        <span class="contest-label">TOP PERCENTILE</span>
+                        <span class="contest-value" id="contest-top-percent">0%</span>
+                    </div>
+                    <div class="contest-stat-item">
+                        <span class="contest-label">CONTESTS</span>
+                        <span class="contest-value" id="contest-attended">0</span>
                     </div>
                 </div>
 
@@ -245,7 +276,7 @@
 
         <!-- Footer -->
         <footer class="app-footer">
-            <p>Crafted with ⚡ for DSA Grinders • Powered by Tashif LeetCode API</p>
+            <p>Crafted with ⚡ for DSA Grinders • Powered by LeetCode Open APIs</p>
         </footer>
     </main>
 
