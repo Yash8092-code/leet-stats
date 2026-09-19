@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>LeetMetric ⚡ Multi-Platform Coding Stats & Aura Tracker</title>
-    <meta name="description" content="Track your competitive coding stats across LeetCode, Codeforces, and CodeChef with real avatars, ratings, animated progress meters, and Gen-Z cyber aesthetics.">
+    <meta name="description" content="Track and compare your competitive programming stats across LeetCode, Codeforces, and CodeChef with live ratings, real avatars, and high-octane Gen-Z cyber aesthetics.">
+    <meta name="theme-color" content="#08090e">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,9 +29,30 @@
                 <span class="pulse-dot"></span>
                 <span>MULTI-PLATFORM VIBE CHECK</span>
             </div>
-            <h1 class="brand-title">
-                Leet<span class="gradient-text">Metric</span> <span class="title-emoji">⚡</span>
-            </h1>
+            <div class="brand-hero">
+                <div class="brand-emblem-wrap">
+                    <svg class="brand-emblem" viewBox="0 0 64 64" width="46" height="46">
+                        <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#brandGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+                        <path d="M 18 24 L 11 32 L 18 40" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M 46 24 L 53 32 L 46 40" fill="none" stroke="#06b6d4" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+                        <polygon points="34,12 21,34 32,34 29,52 44,28 33,28" fill="url(#boltGrad)" filter="drop-shadow(0 0 8px rgba(0, 245, 160, 0.7))" />
+                        <defs>
+                            <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#14192b" />
+                                <stop offset="100%" stop-color="#090d18" />
+                            </linearGradient>
+                            <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#00f5a0" />
+                                <stop offset="50%" stop-color="#00d9f5" />
+                                <stop offset="100%" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="brand-title">
+                    Leet<span class="gradient-text">Metric</span> <span class="title-emoji">⚡</span>
+                </h1>
+            </div>
             <p class="brand-subtitle">
                 Compare stats, inspect live ratings & flex your coding aura across the multiverse.
             </p>
@@ -87,7 +111,11 @@
                         id="user-input" 
                         placeholder="Enter LeetCode handle (e.g. neal_wu, tourist)..." 
                         autocomplete="off" 
+                        autocorrect="off"
+                        autocapitalize="none"
                         spellcheck="false"
+                        inputmode="text"
+                        enterkeyhint="search"
                         maxlength="40"
                         required
                     >
@@ -230,7 +258,7 @@
                     </div>
                 </div>
 
-                <!-- LeetCode Specific Progress Banner -->
+                <!-- Overall Progress Banner -->
                 <div class="overall-progress-card" id="overall-progress-card">
                     <div class="overall-header">
                         <div class="overall-title-wrap">

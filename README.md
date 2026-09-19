@@ -2,11 +2,14 @@
 
 > A high-octane, Gen-Z styled multi-platform competitive programming stats & aura hub. Inspect live ratings, problem solves, avatars, and contest tiers across **LeetCode**, **Codeforces**, and **CodeChef** with cyber-glass aesthetics and animated SVG progress rings.
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-leet--stats--one.vercel.app-00F5D4?style=for-the-badge&logo=vercel&logoColor=white)](https://leet-stats-one.vercel.app)
 ![LeetMetric Multi-Platform Banner](https://img.shields.io/badge/LeetMetric-Multi--Platform%20Hub-8A2BE2?style=for-the-badge&logo=codeforces)
 ![Platforms](https://img.shields.io/badge/Platforms-LeetCode%20|%20Codeforces%20|%20CodeChef-FF4500?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/Vanilla-JS-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 ![CSS3](https://img.shields.io/badge/Modern-CSS3-1572B6?style=for-the-badge&logo=css3)
+
+🔗 **Live URL**: [https://leet-stats-one.vercel.app](https://leet-stats-one.vercel.app)
 
 ---
 

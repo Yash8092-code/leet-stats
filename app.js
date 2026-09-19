@@ -35,9 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentPlatform = "leetcode";
     let currentData = null;
+    let isRequestInProgress = false;
 
     // DOM Elements - Dropdown & Header
-    const platformDropdown = document.getElementById("platform-dropdown");
     const dropdownTrigger = document.getElementById("dropdown-trigger");
     const dropdownMenu = document.getElementById("dropdown-menu");
     const currentPlatformIcon = document.getElementById("current-platform-icon");
@@ -91,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const contestAttendedEl = document.getElementById("contest-attended");
 
     // Progress Banner & Rings
-    const overallProgressCard = document.getElementById("overall-progress-card");
     const progressCardTitle = document.getElementById("progress-card-title");
     const totalSolvedCount = document.getElementById("total-solved-count");
     const totalQuestionsCount = document.getElementById("total-questions-count");
@@ -136,6 +135,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("click", () => {
         toggleDropdown(false);
+    });
+
+    // Close on Escape
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            toggleDropdown(false);
+        }
     });
 
     dropdownMenu.addEventListener("click", (e) => {
@@ -195,7 +201,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderPresetTags(presets) {
         presetTags.innerHTML = presets.map(u => `
-            <button class="tag-chip" data-username="${u}">${u}</button>
+            <button class="tag-chip" type="button" data-username="${u}">${u}</button>
         `).join("");
     }
 
@@ -243,6 +249,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     function handleSearch() {
+        if (isRequestInProgress) return;
+
         const username = usernameInput.value.trim();
         if (!username) {
             showToast("Please enter a username or handle", "error");
@@ -260,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setLoading(isLoading) {
+        isRequestInProgress = isLoading;
         searchButton.disabled = isLoading;
         if (isLoading) {
             btnText.textContent = "Summoning...";
@@ -521,7 +530,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorState.style.display = "none";
         statsDisplay.style.display = "flex";
 
-        // Hide Difficulty rings for Codeforces (CF uses single rating system)
+        // Hide Difficulty rings for Codeforces
         ringsGrid.style.display = "none";
         socialsBar.style.display = "none";
 
@@ -532,10 +541,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Avatar & Name
         displayUsername.textContent = user.handle;
         avatarInitial.textContent = user.handle.charAt(0).toUpperCase();
-        const avatarUrl = user.titlePhoto || user.avatar;
+        let avatarUrl = user.titlePhoto || user.avatar;
 
         if (avatarUrl && !avatarUrl.includes("no-avatar") && !avatarUrl.includes("no-title")) {
-            avatarImg.src = avatarUrl.startsWith("//") ? `https:${avatarUrl}` : avatarUrl;
+            if (avatarUrl.startsWith("//")) avatarUrl = `https:${avatarUrl}`;
+            avatarImg.src = avatarUrl;
             avatarImg.style.display = "block";
             avatarInitial.style.display = "none";
             avatarImg.onerror = () => { avatarImg.style.display = "none"; avatarInitial.style.display = "block"; };
@@ -562,10 +572,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Codeforces Rank & Aura Badge
         const rating = user.rating || 0;
         const maxRating = user.maxRating || 0;
-        const rank = (user.rank || "unrated").toUpperCase();
 
         const badgeClass = getCodeforcesBadgeClass(user.rank);
-        platformBadge.textContent = `🔺 ${user.rank || "Unrated"}`;
+        platformBadge.textContent = `🔺 ${user.rank ? capitalize(user.rank) : "Unrated"}`;
         platformBadge.className = `contest-badge ${badgeClass}`;
         platformBadge.style.display = "inline-flex";
 
@@ -673,7 +682,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const data = await response.json();
-            if (!data || !data.rating_number) {
+            if (!data || (!data.rating_number && !data.rating)) {
                 showErrorState("CodeChef User Not Found 👨‍🍳", `Could not find "${username}" on CodeChef.`);
                 return;
             }
@@ -722,9 +731,10 @@ document.addEventListener("DOMContentLoaded", () => {
         displayAffiliation.style.display = chef.institution ? "inline-block" : "none";
 
         // CodeChef Stars & Aura Badge
-        const rating = Number(chef.rating_number) || 0;
+        const rating = Number(chef.rating_number) || (Number(chef.rating) || 0);
         const maxRank = Number(chef.max_rank) || rating;
-        const stars = chef.rating ? chef.rating.trim() : "1★";
+        const rawStars = chef.rating ? String(chef.rating).replace(/\s+/g, "").trim() : "";
+        const stars = rawStars.includes("★") ? rawStars : (chef.stars ? `${chef.stars}★` : "1★");
 
         platformBadge.textContent = `⭐ ${stars}`;
         platformBadge.className = "contest-badge badge-guardian";
@@ -946,7 +956,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (recents.length > 0) {
                 recentGroup.style.display = "flex";
                 recentTags.innerHTML = recents.map(u => `
-                    <button class="tag-chip" data-username="${u}">@${u}</button>
+                    <button class="tag-chip" type="button" data-username="${u}">@${u}</button>
                 `).join("");
             } else {
                 recentGroup.style.display = "none";
