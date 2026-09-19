@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetMetric ⚡ Gen-Z LeetCode Stats & Aura Tracker</title>
+    <meta name="description" content="Track your LeetCode problem-solving stats, aura rank, acceptance rate, and progress with high-octane Gen-Z cyber aesthetics.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Ambient Glowing Background Elements -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="grid-overlay"></div>
+
+    <main class="app-wrapper">
+        <!-- Header / Brand Section -->
+        <header class="header">
+            <div class="badge-tag">
+                <span class="pulse-dot"></span>
+                <span>VIBE CHECK YOUR GRIND</span>
+            </div>
+            <h1 class="brand-title">
+                Leet<span class="gradient-text">Metric</span> <span class="title-emoji">⚡</span>
+            </h1>
+            <p class="brand-subtitle">
+                Track your code aura, solve stats & flex your DSA journey in real-time.
+            </p>
+        </header>
+
+        <!-- Search Card -->
+        <section class="search-card glass-panel" aria-label="LeetCode Username Search">
+            <form id="search-form" class="search-form" onsubmit="return false;">
+                <div class="input-wrapper">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input 
+                        type="text" 
+                        id="user-input" 
+                        placeholder="Enter LeetCode handle (e.g. Yash8092, tourist)..." 
+                        autocomplete="off" 
+                        spellcheck="false"
+                        maxlength="35"
+                        required
+                    >
+                    <button type="button" id="clear-input-btn" class="clear-btn" title="Clear input" aria-label="Clear input" style="display: none;">
+                        &times;
+                    </button>
+                </div>
+                <button type="submit" id="search-btn" class="btn-primary">
+                    <span class="btn-text">Inspect Stats</span>
+                    <span class="btn-shortcut">↵</span>
+                    <div class="btn-loader" style="display: none;">
+                        <span class="spinner"></span>
+                    </div>
+                </button>
+            </form>
+
+            <!-- Quick Suggestions & Recent Searches -->
+            <div class="quick-tags-container">
+                <div class="tag-group">
+                    <span class="tag-label">🔥 Hot Picks:</span>
+                    <div class="tags-list" id="preset-tags">
+                        <button class="tag-chip" data-username="tourist">tourist</button>
+                        <button class="tag-chip" data-username="neal_wu">neal_wu</button>
+                        <button class="tag-chip" data-username="lee215">lee215</button>
+                        <button class="tag-chip" data-username="Yash8092">Yash8092</button>
+                    </div>
+                </div>
+                <div class="tag-group" id="recent-group" style="display: none;">
+                    <span class="tag-label">🕒 Recent:</span>
+                    <div class="tags-list" id="recent-tags"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Content Area -->
+        <div id="content-container">
+            <!-- Welcome / Empty State placeholder -->
+            <div id="welcome-state" class="welcome-card glass-panel">
+                <div class="welcome-icon-box">👾</div>
+                <h2>Ready for the Vibe Check?</h2>
+                <p>Type in any valid LeetCode username above or tap one of the hot picks to pull live metrics, rank, acceptance rates, and dynamic aura!</p>
+                <div class="feature-pills">
+                    <span class="pill">⚡ Real-time Sync</span>
+                    <span class="pill">🎨 Gen-Z Aura Badges</span>
+                    <span class="pill">📊 Animated SVG Rings</span>
+                    <span class="pill">🚀 One-Click Share</span>
+                </div>
+            </div>
+
+            <!-- Loading Skeleton State (Hidden by default) -->
+            <div id="loading-state" class="glass-panel skeleton-container" style="display: none;">
+                <div class="skeleton-header">
+                    <div class="skeleton-avatar skeleton-shimmer"></div>
+                    <div class="skeleton-title-lines">
+                        <div class="skeleton-line skeleton-shimmer w-50"></div>
+                        <div class="skeleton-line skeleton-shimmer w-30"></div>
+                    </div>
+                </div>
+                <div class="skeleton-rings">
+                    <div class="skeleton-circle skeleton-shimmer"></div>
+                    <div class="skeleton-circle skeleton-shimmer"></div>
+                    <div class="skeleton-circle skeleton-shimmer"></div>
+                </div>
+                <div class="skeleton-grid">
+                    <div class="skeleton-card skeleton-shimmer"></div>
+                    <div class="skeleton-card skeleton-shimmer"></div>
+                    <div class="skeleton-card skeleton-shimmer"></div>
+                    <div class="skeleton-card skeleton-shimmer"></div>
+                </div>
+            </div>
+
+            <!-- Error State Card (Hidden by default) -->
+            <div id="error-state" class="glass-panel error-card" style="display: none;">
+                <div class="error-emoji">💀</div>
+                <h3 id="error-title">User Not Found</h3>
+                <p id="error-message">We couldn't locate this handle on LeetCode. Double check the spelling or try another user.</p>
+                <button type="button" id="error-retry-btn" class="btn-secondary">Try Again</button>
+            </div>
+
+            <!-- Active Stats Presentation Card (Hidden by default) -->
+            <section id="stats-display" class="stats-dashboard glass-panel" style="display: none;">
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="user-meta">
+                        <div class="user-avatar" id="avatar-container">
+                            <span id="avatar-initial">?</span>
+                        </div>
+                        <div class="user-info">
+                            <div class="username-row">
+                                <h2 id="display-username">Username</h2>
+                                <span id="aura-badge" class="aura-badge">⚡ DSA Rookie</span>
+                            </div>
+                            <p class="user-subtext" id="user-subtext">LeetCode Competitor</p>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a id="leetcode-link" href="#" target="_blank" rel="noopener noreferrer" class="action-btn link-btn" title="View on LeetCode">
+                            <span>LeetCode</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                        </a>
+                        <button id="copy-stats-btn" class="action-btn share-btn" title="Copy stats to clipboard">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span id="copy-btn-text">Share Vibe</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Total Solved Progress Banner -->
+                <div class="overall-progress-card">
+                    <div class="overall-header">
+                        <div class="overall-title-wrap">
+                            <span class="section-label">TOTAL SOLVED</span>
+                            <div class="overall-numbers">
+                                <span class="counter-highlight" id="total-solved-count">0</span>
+                                <span class="total-denom">/ <span id="total-questions-count">0</span></span>
+                            </div>
+                        </div>
+                        <div class="overall-percentage" id="overall-percentage">0%</div>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="overall-progress-bar" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Difficulty Rings Section -->
+                <div class="rings-grid">
+                    <!-- Easy Ring -->
+                    <div class="ring-card easy-card">
+                        <div class="ring-wrapper">
+                            <svg class="progress-ring" width="120" height="120" viewBox="0 0 120 120">
+                                <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="ring-fill easy-stroke" id="easy-circle" cx="60" cy="60" r="50"></circle>
+                            </svg>
+                            <div class="ring-text">
+                                <span class="ring-solved" id="easy-solved">0</span>
+                                <span class="ring-total">/ <span id="easy-total">0</span></span>
+                            </div>
+                        </div>
+                        <div class="ring-meta">
+                            <span class="diff-badge easy-tag">Easy</span>
+                            <span class="ring-percent" id="easy-percent">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Medium Ring -->
+                    <div class="ring-card medium-card">
+                        <div class="ring-wrapper">
+                            <svg class="progress-ring" width="120" height="120" viewBox="0 0 120 120">
+                                <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="ring-fill medium-stroke" id="medium-circle" cx="60" cy="60" r="50"></circle>
+                            </svg>
+                            <div class="ring-text">
+                                <span class="ring-solved" id="medium-solved">0</span>
+                                <span class="ring-total">/ <span id="medium-total">0</span></span>
+                            </div>
+                        </div>
+                        <div class="ring-meta">
+                            <span class="diff-badge medium-tag">Medium</span>
+                            <span class="ring-percent" id="medium-percent">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Hard Ring -->
+                    <div class="ring-card hard-card">
+                        <div class="ring-wrapper">
+                            <svg class="progress-ring" width="120" height="120" viewBox="0 0 120 120">
+                                <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="ring-fill hard-stroke" id="hard-circle" cx="60" cy="60" r="50"></circle>
+                            </svg>
+                            <div class="ring-text">
+                                <span class="ring-solved" id="hard-solved">0</span>
+                                <span class="ring-total">/ <span id="hard-total">0</span></span>
+                            </div>
+                        </div>
+                        <div class="ring-meta">
+                            <span class="diff-badge hard-tag">Hard</span>
+                            <span class="ring-percent" id="hard-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Metrics Grid -->
+                <div class="stats-grid" id="stats-grid">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Crafted with ⚡ for DSA Grinders • Powered by Tashif LeetCode API</p>
+        </footer>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
